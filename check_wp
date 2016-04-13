@@ -1,0 +1,95 @@
+#!/usr/bin/php
+<?php
+
+// check if wordpresss installation is not defined
+if (!isset($argv[1])) {
+    echo "UNKNOW: Wordpress installation path not defined";
+    exit(3);
+}
+
+$wpPath = $argv[1];
+
+// check if that path is a wordpress installation
+if (!file_exists($wpPath . '/wp-load.php')) {
+    echo "CRITICAL: It seems that is not a WordPress Installation";
+    exit(2);
+}
+
+require_once($wpPath . '/wp-load.php');
+
+global $wp_version;
+
+$core_updates = FALSE;
+$plugin_updates = FALSE;
+
+wp_version_check();
+wp_update_plugins();
+wp_update_themes();
+
+if (function_exists('get_transient')) {
+    $core = get_transient('update_core');
+    $plugins = get_transient('update_plugins');
+    $themes = get_transient('update_themes');
+
+    if ($core == FALSE) {
+        $core = get_site_transient('update_core');
+        $plugins = get_site_transient('update_plugins');
+        $themes = get_site_transient('update_themes');
+    }
+} else {
+    $core = get_site_transient('update_core');
+    $plugins = get_site_transient('update_plugins');
+    $themes = get_site_transient('update_themes');
+}
+
+$core_available = FALSE;
+$plugin_available = 0;
+$theme_available = 0;
+
+foreach ($core->updates as $core_update) {
+    if ($core_update->current != $wp_version) {
+        $core_available = TRUE;
+    }
+}
+
+$plugin_available = count($plugins->response);
+$theme_available = count($themes->response);
+
+$text = array();
+
+if ($core_available) {
+    $text[] = 'Core update available';
+}
+
+if ($plugin_available > 0) {
+    $text[] = $plugin_available . ' plugins update available';
+}
+
+if ($theme_available > 0) {
+    $text[] = $theme_available . ' themes update available';
+}
+
+$status = 'OK';
+
+/**
+ * Return code :
+ *
+ * 0 = OK
+ * 1 = Warning
+ * 2 = Critical
+ * 3 = Unknow
+ */
+$returnCode = 0;
+
+if ($core_available) {
+    $status = 'CRITICAL';
+    $returnCode = 2;
+} elseif ($theme_available > 0 OR $plugin_available > 0) {
+    $status = 'WARNING';
+    $returnCode = 1;
+}
+
+echo $status . ': ' . implode($text, ',');
+
+// Fire exit code
+exit($returnCode);
