@@ -15,6 +15,27 @@ if (!file_exists($wpPath . '/wp-load.php')) {
     exit(2);
 }
 
+if (!empty($argv[2])) {
+    $urlInfo = parse_url($argv[2]);
+
+    if (!empty($urlInfo['scheme']) && $urlInfo['scheme'] == 'https') {
+        $_SERVER['HTTPS'] = 'on';
+    }
+
+    if (!empty($urlInfo['path'])) {
+        $_SERVER['REQUEST_URI'] = $urlInfo['path'];
+    }
+
+    if (!empty($urlInfo['query'])) {
+        $_SERVER['QUERY_STRING'] = $urlInfo['query'];
+    }
+
+    if (!empty($urlInfo['host'])) {
+        $_SERVER['HTTP_HOST'] = $urlInfo['host'];
+    }
+}
+
+
 require_once($wpPath . '/wp-load.php');
 
 global $wp_version;

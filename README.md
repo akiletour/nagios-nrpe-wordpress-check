@@ -44,5 +44,12 @@ and add at the end of the file :
 command[check_wp_mywebsite] = sudo /etc/nagios-plugins/check_wp /path/to/wordpress/installation
 ```
 
+optionaly you can pass fake request url as parameter :
+
+```
+command[check_wp_mywebsite] = sudo /etc/nagios-plugins/check_wp /path/to/wordpress/installation "http://my.domain.com/"
+```
+
+
 ## Todo
 - Use argument for installation path of WordPress (soon)
